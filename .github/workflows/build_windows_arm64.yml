@@ -1,0 +1,52 @@
+name: Build qbittorrent (Windows ARM64/AArch64)
+
+on:
+  push:
+    branches:
+      - v5_1_x
+
+jobs:
+  build-winarm64:
+    defaults:
+      run:
+        shell: msys2 {0}
+    runs-on: windows-11-arm
+    steps:
+      - name: 'Configure git: core.autocrlf, core.eol'
+        shell: bash
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+      - uses: actions/checkout@v6
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: CLANGARM64
+          update: true
+          pacboy: >-
+            boost:p
+            cmake:p
+            libtorrent-rasterbar:p
+            ninja:p
+            qt6:p
+            toolchain:p
+      - name: Build
+        run: |
+          cmake -B build -S . -DCMAKE_INSTALL_PREFIX="$PWD/install2" -DSTACKTRACE=OFF
+          cmake --build build
+          cmake --install build
+      - name: 'qt6: Run qt deploy tool'
+        run: |
+          cd install2/bin
+          windeployqt-qt6 qbittorrent.exe
+      - name: Copy files
+        run: |
+          cd install2/bin
+          for i in $(ldd qbittorrent.exe | cut -d '>' -f 2 | grep $MSYSTEM_PREFIX/bin | awk '{print $1}'); do [ -f "${i}" ] && cp "${i}" .; done
+          strip *.exe
+          install -Dv /dev/null profile/profile.txt
+      - name: Upload as artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: qbittorrent-git-winarm64-${{github.sha}}
+          path: install2/bin
+          if-no-files-found: error
