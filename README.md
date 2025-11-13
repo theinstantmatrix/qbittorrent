@@ -1,3 +1,8 @@
+qbittorrent (with unofficial binaries for Windows ARM64/AArch64, fork of [qbittorrent/qBittorrent](https://github.com/qbittorrent/qBittorrent)).
+Downloads are hosted at the [releases](https://github.com/theinstantmatrix/qbittorrent/releases) section.
+
+---
+
 qBittorrent - A BitTorrent client in Qt
 ------------------------------------------
 
